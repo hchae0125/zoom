@@ -12,17 +12,28 @@ app.get("/*", (req, res) => res.redirect("/"));
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({server});
-
+const sockets = [];
 wss.on("connection", (socket) => {
+    sockets.push(socket);
+    socket["nickname"] = "Anonymous";
     console.log("Connected to Browser.");
     socket.on("close", () => {
         console.log("Disconnected from the browser.");
     });
     socket.on("message", (message) => {
-        const decoder = new StringDecoder('utf8');    
-        console.log(decoder.write(message));
+        const decoder = new StringDecoder('utf8'); 
+        let decodedMsg = decoder.write(message);  
+        const objMsg = JSON.parse(decodedMsg);
+        console.log(objMsg);
+        if (objMsg.type === "new_message") {
+            sockets.forEach(aSocket => aSocket.send(`${socket.nickname}: ${objMsg.payload}`));
+        } else if (objMsg.type === "nickname") {
+            socket["nickname"] = objMsg.payload;
+        }
+        
+        
+        
     })
-    socket.send("hello!");
 });
 
 const handleListen = () => {
