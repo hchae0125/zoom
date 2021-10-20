@@ -3,6 +3,8 @@ import http from 'http';
 import { StringDecoder } from 'string_decoder';
 import WebSocket from 'ws';
 import SocketIO from 'socket.io';
+import { instrument } from '@socket.io/admin-ui';
+import { Server } from 'socket.io';
 
 const app = express();
 app.set("view engine", "pug");
@@ -12,7 +14,15 @@ app.get("/", (req, res) => res.render("home"));
 app.get("/*", (req, res) => res.redirect("/"));
 
 const httpServer = http.createServer(app);
-const wsServer = SocketIO(httpServer);
+const wsServer = new Server(httpServer, {
+    cors: {
+        origin: ["https://admin.socket.io"],
+        credentials: true,
+    },
+});
+instrument(wsServer, {
+    auth: false
+});
 
 const publicRooms = () => {
     const {
