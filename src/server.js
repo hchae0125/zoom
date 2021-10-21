@@ -50,10 +50,15 @@ wsServer.on("connection", socket => {
         console.log(`Socket Event: ${event}`);
     });
     
-    socket.on("enter_room", (roomName, done) => {
+    socket.on("enter_room", (roomName) => {
         socket.join(roomName);
-        done();
         socket.to(roomName).emit("welcome", socket.nickname, countRoom(roomName));
+        socket.on("offer", (offer, roomName) => {
+            socket.to(roomName).emit("offer", offer);
+        });
+        socket.on("answer", (answer, roomName) => {
+            socket.to(roomName).emit("answer", answer);
+        });
         wsServer.sockets.emit("room_change", publicRooms());
     });
 
